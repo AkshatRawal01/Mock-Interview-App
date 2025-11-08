@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 import StartInterviewClient from './StartInterviewClient'; // ✅ import client version
 
 export default async function StartInterview({ params }) {
-  const interviewId = params.interviewId;
+  const { interviewId } = await params;
 
   const result = await db
     .select()
@@ -19,10 +19,15 @@ export default async function StartInterview({ params }) {
 
   const interviewData = result[0];
   const jsonMockResp = JSON.parse(interviewData.jsonMockResp);
+  
+  // Handle both old format (array) and new format ({ questions: [...] })
+  const questions = Array.isArray(jsonMockResp) 
+    ? jsonMockResp 
+    : (jsonMockResp.questions || jsonMockResp);
 
   return (
     <StartInterviewClient
-      questions={jsonMockResp}
+      questions={questions}
       interviewData={interviewData}
     />
   );

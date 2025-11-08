@@ -73,9 +73,9 @@ function RecordAnsSection({MockInterviewQuestion,activeQuestionIndex,interviewDa
           toast.error('Failed to save answer. Please try again.');
           console.error('Error saving answer:', error);
         }
-      } else {
-        toast.warning('Answer is too short. Please provide a longer answer.');
-      }
+       } //else {
+      //   toast.warning('Answer is too short. Please provide a longer answer.');
+      // }
     } else {
       startSpeechToText();
       toast.info('Recording started...');

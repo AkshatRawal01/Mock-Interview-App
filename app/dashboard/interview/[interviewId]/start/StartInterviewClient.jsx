@@ -8,6 +8,11 @@ import Link from 'next/link';
 export default function StartInterviewClient({ questions, interviewData }) {
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
 
+  // Ensure questions is an array
+  if (!questions || !Array.isArray(questions) || questions.length === 0) {
+    return <div className='p-5'>No questions available for this interview.</div>;
+  }
+
   const handlePrevious = () => {
     if (activeQuestionIndex > 0) {
       setActiveQuestionIndex(prev => prev - 1);
@@ -38,11 +43,11 @@ export default function StartInterviewClient({ questions, interviewData }) {
         <Button onClick={handlePrevious} disabled={activeQuestionIndex === 0}>
           Previous Question
         </Button>
-        <Button onClick={handleNext} disabled={activeQuestionIndex === questions.length - 1}>
+        <Button onClick={handleNext} disabled={activeQuestionIndex >= questions.length - 1}>
           Next Question
         </Button>
         {/* show only on the last question */}
-        {activeQuestionIndex === questions.length-1 && (
+        {activeQuestionIndex === questions.length - 1 && (
             <Link href={`/dashboard/interview/${interviewData.mockId}/feedback`}>
           <Button
             variant="destructive"

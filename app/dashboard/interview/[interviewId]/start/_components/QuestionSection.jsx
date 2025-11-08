@@ -14,11 +14,16 @@ function QuestionSection({MockInterviewQuestion,activeQuestionIndex }) {
         }
     }
 
-  return MockInterviewQuestion&&(
+  // Ensure MockInterviewQuestion is an array
+  if (!MockInterviewQuestion || !Array.isArray(MockInterviewQuestion)) {
+    return <div className='p-5 border rounded-lg mt-10'>No questions available</div>;
+  }
+
+  return (
     <div className='p-5 border rounded-lg mt-10'>
         <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5'>
-            {MockInterviewQuestion&&MockInterviewQuestion.map((question,index)=>(
-                <h2 className={`p-2 text-primary bg-amber-100 rounded-full text-xs md:text-sm text-center cursor-pointer ${activeQuestionIndex==index&&'text-white bg-primary'}`}>Question #{index+1} </h2>
+            {MockInterviewQuestion.map((question,index)=>(
+                <h2 key={index} className={`p-2 text-primary bg-amber-100 rounded-full text-xs md:text-sm text-center cursor-pointer ${activeQuestionIndex==index&&'text-white bg-primary'}`}>Question #{index+1} </h2>
             ))}
 
            

@@ -2,7 +2,7 @@
 import { db } from '@/utils/db'
 import { UserAnswer } from '@/utils/schema'
 import { eq } from 'drizzle-orm'
-import React, { useEffect } from 'react'
+import React, { useEffect, use } from 'react'
 import { useState } from 'react'
 import {
   Collapsible,
@@ -15,14 +15,16 @@ import { useRouter } from 'next/navigation'
 
 
 function feedbackPage({params}) {
-
+    const { interviewId } = use(params);
     const [feedbackList,setFeedbackList] = useState([]);
     const router= useRouter();
     useEffect(()=>{
-        GetFeedback();
-    },[])
+        if (interviewId) {
+            GetFeedback();
+        }
+    },[interviewId])
     const GetFeedback=async()=>{
-        const result= await db.select().from(UserAnswer).where(eq(UserAnswer.mockIdRef,params.interviewId)).orderBy(UserAnswer.id)
+        const result= await db.select().from(UserAnswer).where(eq(UserAnswer.mockIdRef,interviewId)).orderBy(UserAnswer.id)
 
         console.log(result);
         setFeedbackList(result);
@@ -35,7 +37,7 @@ function feedbackPage({params}) {
       :<>
        <h2 className='font-bold text-3xl text-green-600'>Congratulations!</h2>
         <h2 className='font-bold text-2xl'>Here is your interview feedback</h2>
-        <h2 className='text-blue-500 text-lg my-3'>Your overall interview rating: <strong>7/10</strong></h2>
+        <h2 className='text-blue-500 text-lg my-3'>Your overall interview rating: <strong>6/10</strong></h2>
         
         <h2 className='text-sm text-gray-500'>Find below interview question with correct answer,Your answer and feedback feedback for improvement </h2>
 

@@ -37,32 +37,73 @@ function AddNewInterview() {
         e.preventDefault();
         console.log(jobPosition,jobDesc,jobExperience)
 
-        const InputPrompt="Job Position: "+jobPosition+", Job Description: "+jobDesc+" , Years of Experience :"+jobExperience+", Depends on this Information give us "+process.env.NEXT_PUBLIC_INTERVIEW_QUESTION_COUNT+" Interview Questions with answersin JSON format, Give questions ans answers as field in JSON"
+        const InputPrompt=`Job Position: ${jobPosition}, Job Description: ${jobDesc}, Years of Experience: ${jobExperience}. 
+
+Based on this information, generate exactly ${process.env.NEXT_PUBLIC_INTERVIEW_QUESTION_COUNT || 5} interview questions with answers in JSON format.
+
+IMPORTANT: Return ONLY valid JSON. Do not include any markdown, explanations, or text outside the JSON object. The JSON should have this structure:
+{
+  "questions": [
+    {
+      "question": "question text here",
+      "answer": "answer text here"
+    }
+  ]
+}`
 
         const result =  await chatSession.sendMessage(InputPrompt);
-        const MockJsonResp=(result.response.text()).replace('```json','').replace('```','')
-        console.log(JSON.parse(MockJsonResp));
+        let responseText = result.response.text();
+        
+        // Clean the response - remove markdown code blocks
+        responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        
+        // Try to extract JSON if there's extra text
+        // Look for JSON object boundaries
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          responseText = jsonMatch[0];
+        }
+        
+        // Parse and validate JSON
+        let parsedJson;
+        try {
+          parsedJson = JSON.parse(responseText);
+          console.log('Parsed JSON:', parsedJson);
+        } catch (parseError) {
+          console.error('JSON Parse Error:', parseError);
+          console.error('Response text:', responseText);
+          alert('Failed to parse AI response. Please try again.');
+          setLoading(false);
+          return;
+        }
+        
+        const MockJsonResp = JSON.stringify(parsedJson);
         setJsonResponse(MockJsonResp);
 
         if(MockJsonResp){
-           const resp= await db.insert(MockInterview).values({
-            mockId:uuidv4(),
-            jsonMockResp:MockJsonResp,
-            jobPosition:jobPosition,
-            jobDesc:jobDesc,
-            jobExperience:jobExperience,
-            createdBy:user?.primaryEmailAddress?.emailAddress,
-            createdAt:moment().format('DD-MM-yyyy')
+          try {
+            const resp= await db.insert(MockInterview).values({
+              mockId:uuidv4(),
+              jsonMockResp:MockJsonResp,
+              jobPosition:jobPosition,
+              jobDesc:jobDesc,
+              jobExperience:jobExperience,
+              createdBy:user?.primaryEmailAddress?.emailAddress,
+              createdAt:moment().format('DD-MM-yyyy')
 
-        }).returning({mockId:MockInterview.mockId })
+            }).returning({mockId:MockInterview.mockId })
 
-        console.log("Inserted Id:",resp)
+            console.log("Inserted Id:",resp)
             if(resp){
               setOpenDailog(false);
               router.push('/dashboard/interview/'+resp[0]?.mockId)
             }
+          } catch (dbError) {
+            console.error('Database Error:', dbError);
+            alert('Failed to save interview. Please try again.');
+          }
         }else{
-          console.log("ERROR")
+          console.log("ERROR: No JSON response")
         }
 
        
